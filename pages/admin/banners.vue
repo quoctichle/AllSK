@@ -27,9 +27,10 @@
           <input type="file" accept="image/*" @change="onFileChange" required />
         </label>
 
-        <button type="submit" class="banner-add-btn">Them banner</button>
+        <button type="submit" class="banner-add-btn" :disabled="uploading">Them banner</button>
       </form>
 
+      <p v-if="uploading" class="info-text">Dang tai anh len...</p>
       <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
 
       <div class="banner-list">
@@ -59,60 +60,73 @@ const form = reactive({
   subtitle: ''
 })
 
-const pickedImageData = ref('')
+const pickedFile = ref<File | null>(null)
+const pickedPreview = ref('')
+const uploading = ref(false)
 const errorMessage = ref('')
 
-const onFileChange = async (event: Event) => {
+const onFileChange = (event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
 
   if (!file) {
-    pickedImageData.value = ''
+    pickedFile.value = null
+    pickedPreview.value = ''
     return
   }
 
-  const isImage = file.type.startsWith('image/')
-  if (!isImage) {
-    pickedImageData.value = ''
+  if (!file.type.startsWith('image/')) {
+    pickedFile.value = null
+    pickedPreview.value = ''
     errorMessage.value = 'Vui long chon file anh hop le.'
     return
   }
 
   errorMessage.value = ''
-  pickedImageData.value = await readFileAsDataUrl(file)
+  pickedFile.value = file
+
+  // Local preview
+  const reader = new FileReader()
+  reader.onload = () => { pickedPreview.value = String(reader.result ?? '') }
+  reader.readAsDataURL(file)
 }
 
-const onAddBanner = () => {
-  if (!pickedImageData.value) {
+const onAddBanner = async () => {
+  if (!pickedFile.value) {
     errorMessage.value = 'Ban can tai anh banner truoc khi them.'
     return
   }
 
-  addBanner({
-    title: form.title.trim(),
-    subtitle: form.subtitle.trim(),
-    imageUrl: pickedImageData.value
-  })
-
-  form.title = ''
-  form.subtitle = ''
-  pickedImageData.value = ''
+  uploading.value = true
   errorMessage.value = ''
-}
 
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
+  try {
+    // 1. Upload image to R2
+    const fd = new FormData()
+    fd.append('image', pickedFile.value)
 
-    reader.onload = () => {
-      resolve(String(reader.result || ''))
-    }
+    const { key, imageUrl } = await $fetch<{ key: string; imageUrl: string }>(
+      '/api/banners/upload',
+      { method: 'POST', body: fd }
+    )
 
-    reader.onerror = () => {
-      reject(new Error('Cannot read file'))
-    }
+    // 2. Save metadata to D1
+    await addBanner({
+      title: form.title.trim(),
+      subtitle: form.subtitle.trim(),
+      imageUrl,
+      imageKey: key
+    })
 
-    reader.readAsDataURL(file)
-  })
+    form.title = ''
+    form.subtitle = ''
+    pickedFile.value = null
+    pickedPreview.value = ''
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Loi khong xac dinh'
+    errorMessage.value = `Them banner that bai: ${msg}`
+  } finally {
+    uploading.value = false
+  }
 }
 </script>

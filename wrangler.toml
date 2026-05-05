@@ -1,0 +1,18 @@
+name = "sunshine-telecom-event"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = ".output/public"
+
+# ─── D1 Database ────────────────────────────────────────────────────────────
+# 1. Create database: npx wrangler d1 create sunshine_banners
+# 2. Copy the "database_id" printed and paste below
+# 3. Init schema:   npx wrangler d1 execute sunshine_banners --file=server/database/schema.sql
+[[d1_databases]]
+binding      = "DB"
+database_name = "sunshine_banners"
+database_id  = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# ─── R2 Bucket ──────────────────────────────────────────────────────────────
+# 1. Create bucket: npx wrangler r2 bucket create sunshine-banners
+[[r2_buckets]]
+binding     = "R2_BUCKET"
+bucket_name = "sunshine-banners"

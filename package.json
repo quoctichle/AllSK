@@ -13,5 +13,10 @@
     "nuxt": "^3.21.4",
     "vue": "^3.5.33",
     "vue-router": "^5.0.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260505.1",
+    "nitro-cloudflare-dev": "^0.2.2",
+    "wrangler": "^4.87.0"
   }
 }
