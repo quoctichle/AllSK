@@ -1,5 +1,4 @@
 const ADMIN_EMAIL = 'admin@sunshine.com'
-const ADMIN_PASSWORD = 'Sunshinetelecom'
 
 function isValidGmail(email: string): boolean {
   return /^[^\s@]+@gmail\.com$/i.test(email.trim())
@@ -40,33 +39,60 @@ export function useAuth() {
   const isUserAuthenticated = computed(() => !!userEmail.value)
   const isAdminAuthenticated = computed(() => adminAuthenticated.value && !!adminEmail.value)
 
-  const loginUser = (email: string) => {
+  const loginUser = async (email: string) => {
     const normalizedEmail = email.trim().toLowerCase()
 
     if (!isValidGmail(normalizedEmail)) {
       return { ok: false as const, errorKey: 'auth.invalidEmail' }
     }
 
-    userEmail.value = normalizedEmail
-    return { ok: true as const }
+    try {
+      const result = await $fetch<{ ok: boolean; errorKey?: string; email?: string }>('/api/auth/user-login', {
+        method: 'POST',
+        body: { email: normalizedEmail }
+      })
+
+      if (!result.ok || !result.email) {
+        return { ok: false as const, errorKey: (result.errorKey || 'auth.invalidEmail') as string }
+      }
+
+      userEmail.value = result.email
+      return { ok: true as const }
+    } catch {
+      return { ok: false as const, errorKey: 'auth.invalidEmail' }
+    }
   }
 
-  const loginAdmin = (email: string, password: string) => {
+  const loginAdmin = async (email: string, password: string) => {
     const normalizedEmail = email.trim().toLowerCase()
 
     if (!password.trim()) {
       return { ok: false as const, errorKey: 'auth.requiredPassword' }
     }
 
-    if (normalizedEmail !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+    try {
+      const result = await $fetch<{ ok: boolean; errorKey?: string; email?: string }>('/api/auth/admin-login', {
+        method: 'POST',
+        body: {
+          email: normalizedEmail,
+          password
+        }
+      })
+
+      if (!result.ok || !result.email) {
+        adminAuthenticated.value = false
+        adminEmail.value = ''
+        return { ok: false as const, errorKey: (result.errorKey || 'auth.invalidAdminCredential') as string }
+      }
+
+      adminAuthenticated.value = true
+      adminEmail.value = result.email
+      return { ok: true as const }
+    } catch {
       adminAuthenticated.value = false
       adminEmail.value = ''
       return { ok: false as const, errorKey: 'auth.invalidAdminCredential' }
     }
-
-    adminAuthenticated.value = true
-    adminEmail.value = normalizedEmail
-    return { ok: true as const }
   }
 
   const logoutUser = () => {
@@ -89,7 +115,7 @@ export function useAuth() {
     logoutAdmin,
     adminCredentialHint: {
       email: ADMIN_EMAIL,
-      password: ADMIN_PASSWORD
+      password: 'Managed in D1'
     }
   }
 }

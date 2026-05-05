@@ -27,7 +27,7 @@ if (isAdminAuthenticated.value) {
 const onSubmit = async (payload: { email: string; password: string }) => {
   errorMessage.value = ''
 
-  const result = loginAdmin(payload.email, payload.password)
+  const result = await loginAdmin(payload.email, payload.password)
 
   if (!result.ok) {
     errorMessage.value = t(result.errorKey)

@@ -24,7 +24,7 @@ if (isUserAuthenticated.value) {
 const onSubmit = async (payload: { email: string }) => {
   errorMessage.value = ''
 
-  const result = loginUser(payload.email)
+  const result = await loginUser(payload.email)
 
   if (!result.ok) {
     errorMessage.value = t(result.errorKey)
