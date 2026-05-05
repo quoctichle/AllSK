@@ -31,4 +31,19 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Default admin account
 INSERT OR IGNORE INTO admins (email, password) VALUES
-  ('admin@sunshine.com', 'Sunshinetelecom');
+  ('admin@sunshine.com', 'Sunshinetelecom'),
+  ('sst-it@sunshine.com', 'sunshinetelecom');
+
+-- Admin profile for role + fine-grained permissions
+CREATE TABLE IF NOT EXISTS admin_profiles (
+  email            TEXT PRIMARY KEY,
+  role             TEXT NOT NULL DEFAULT 'admin',
+  permissions_json TEXT NOT NULL DEFAULT '{"manage_banners":true,"manage_admins":false,"view_dashboard":true}',
+  is_active        INTEGER NOT NULL DEFAULT 1,
+  updated_at       INTEGER NOT NULL DEFAULT (unixepoch()),
+  FOREIGN KEY (email) REFERENCES admins(email) ON DELETE CASCADE
+);
+
+INSERT OR IGNORE INTO admin_profiles (email, role, permissions_json, is_active) VALUES
+  ('admin@sunshine.com', 'admin', '{"manage_banners":true,"manage_admins":false,"view_dashboard":true}', 1),
+  ('sst-it@sunshine.com', 'super_admin', '{"manage_banners":true,"manage_admins":true,"view_dashboard":true}', 1);

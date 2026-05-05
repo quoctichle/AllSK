@@ -20,9 +20,15 @@ export function useAuth() {
     sameSite: 'lax'
   })
 
+  const adminRoleCookie = useCookie<string>('admin_role', {
+    default: () => '',
+    sameSite: 'lax'
+  })
+
   const userEmail = useState<string>('user_email_state', () => userEmailCookie.value || '')
   const adminEmail = useState<string>('admin_email_state', () => adminEmailCookie.value || '')
   const adminAuthenticated = useState<boolean>('admin_auth_state', () => !!adminAuthCookie.value)
+  const adminRole = useState<string>('admin_role_state', () => adminRoleCookie.value || '')
 
   watch(userEmail, (nextValue) => {
     userEmailCookie.value = nextValue
@@ -36,8 +42,13 @@ export function useAuth() {
     adminAuthCookie.value = nextValue
   })
 
+  watch(adminRole, (nextValue) => {
+    adminRoleCookie.value = nextValue
+  })
+
   const isUserAuthenticated = computed(() => !!userEmail.value)
   const isAdminAuthenticated = computed(() => adminAuthenticated.value && !!adminEmail.value)
+  const isSuperAdmin = computed(() => adminRole.value === 'super_admin')
 
   const loginUser = async (email: string) => {
     const normalizedEmail = email.trim().toLowerCase()
@@ -71,7 +82,7 @@ export function useAuth() {
     }
 
     try {
-      const result = await $fetch<{ ok: boolean; errorKey?: string; email?: string }>('/api/auth/admin-login', {
+      const result = await $fetch<{ ok: boolean; errorKey?: string; email?: string; role?: string }>('/api/auth/admin-login', {
         method: 'POST',
         body: {
           email: normalizedEmail,
@@ -79,18 +90,21 @@ export function useAuth() {
         }
       })
 
-      if (!result.ok || !result.email) {
+      if (!result.ok || !result.email || !result.role) {
         adminAuthenticated.value = false
         adminEmail.value = ''
+        adminRole.value = ''
         return { ok: false as const, errorKey: (result.errorKey || 'auth.invalidAdminCredential') as string }
       }
 
       adminAuthenticated.value = true
       adminEmail.value = result.email
+      adminRole.value = result.role
       return { ok: true as const }
     } catch {
       adminAuthenticated.value = false
       adminEmail.value = ''
+      adminRole.value = ''
       return { ok: false as const, errorKey: 'auth.invalidAdminCredential' }
     }
   }
@@ -102,13 +116,16 @@ export function useAuth() {
   const logoutAdmin = () => {
     adminAuthenticated.value = false
     adminEmail.value = ''
+    adminRole.value = ''
   }
 
   return {
     userEmail,
     adminEmail,
+    adminRole,
     isUserAuthenticated,
     isAdminAuthenticated,
+    isSuperAdmin,
     loginUser,
     loginAdmin,
     logoutUser,

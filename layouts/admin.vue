@@ -19,6 +19,14 @@
           >
             Quan ly banner
           </NuxtLink>
+          <NuxtLink
+            v-if="isSuperAdmin"
+            to="/admin/admins"
+            class="admin-nav-link"
+            :class="{ active: route.path.startsWith('/admin/admins') }"
+          >
+            Quan ly admin
+          </NuxtLink>
         </aside>
 
         <section class="admin-content">
@@ -33,6 +41,7 @@
 
 <script setup lang="ts">
 const { locale, setLocale } = useI18nText()
+const { isSuperAdmin } = useAuth()
 const route = useRoute()
 
 if (locale.value !== 'vi') {

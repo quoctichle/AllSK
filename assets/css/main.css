@@ -462,6 +462,16 @@ a {
   margin-top: 8px;
 }
 
+.info-text {
+  color: #2a5f8f;
+  margin-top: 8px;
+}
+
+.success-text {
+  color: #0b7d5f;
+  margin-top: 8px;
+}
+
 .dashboard-head h1 {
   margin: 0;
 }
@@ -644,6 +654,82 @@ a {
   margin-top: 18px;
   display: grid;
   gap: 10px;
+}
+
+.admin-manager {
+  margin-top: 18px;
+}
+
+.admin-form {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-form input,
+.admin-form select,
+.admin-item-controls select {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  background: #fff;
+}
+
+.permission-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #35516e;
+}
+
+.permission-grid label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-list {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.admin-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.admin-item h3 {
+  margin: 0;
+}
+
+.admin-item p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.admin-item-controls {
+  display: grid;
+  gap: 8px;
+  min-width: 210px;
+}
+
+.admin-item-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #35516e;
 }
 
 .banner-item {
@@ -840,6 +926,14 @@ a {
   .banner-item {
     grid-template-columns: 1fr;
     align-items: start;
+  }
+
+  .admin-item {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-item-controls {
+    min-width: 0;
   }
 
   .banner-item img {
